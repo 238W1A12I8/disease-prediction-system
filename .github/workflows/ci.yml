@@ -35,9 +35,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      - name: Verify Maven installation
-        run: chmod +x mvn
-
       - name: Build with Maven
         run: mvn -B package -DskipTests
 
@@ -73,9 +70,6 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: ${{ env.JAVA_DISTRIBUTION }}
           cache: maven
-
-      - name: Verify Maven installation
-        run: chmod +x mvn
 
       - name: Run tests with coverage
         run: mvn -B verify
@@ -136,9 +130,6 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: ${{ env.JAVA_DISTRIBUTION }}
           cache: maven
-
-      - name: Verify Maven installation
-        run: chmod +x mvn
 
       - name: OWASP Dependency Check
         run: mvn -B org.owasp:dependency-check-maven:check || true

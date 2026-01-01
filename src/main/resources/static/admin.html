@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - HealthPredict</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <!-- Hamburger Button -->
+        <button class="hamburger-btn" id="hamburger-btn" onclick="appApi.toggleSidebar()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        
+        <!-- Sidebar Overlay -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="appApi.toggleSidebar()"></div>
+        
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">
+                <span class="sidebar-logo-icon">💚</span>
+                <span>HealthPredict</span>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="/index.html" class="sidebar-item">
+                    <span class="icon">🏠</span>
+                    <span>Home</span>
+                </a>
+                <a href="/predict.html" class="sidebar-item">
+                    <span class="icon">🔬</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/diseases.html" class="sidebar-item">
+                    <span class="icon">📚</span>
+                    <span>Disease Library</span>
+                </a>
+                <a href="/profile.html" class="sidebar-item">
+                    <span class="icon">👤</span>
+                    <span>My Profile</span>
+                </a>
+                <a href="/admin.html" class="sidebar-item active">
+                    <span class="icon">⚙️</span>
+                    <span>Admin Panel</span>
+                </a>
+                <a href="/swagger-ui.html" class="sidebar-item">
+                    <span class="icon">📖</span>
+                    <span>API Docs</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-user">
+                <div class="sidebar-avatar" id="user-avatar">A</div>
+                <div class="sidebar-user-info">
+                    <div class="sidebar-user-name" id="user-name">Admin</div>
+                    <div class="sidebar-user-role">Administrator</div>
+                </div>
+            </div>
+            
+            <div style="padding: 0 20px 16px; display: flex; gap: 8px;">
+                <button class="theme-toggle" onclick="appApi.toggleTheme()" title="Toggle theme" style="flex-shrink:0;">
+                    <span class="icon-moon">🌙</span>
+                    <span class="icon-sun">☀️</span>
+                </button>
+                <button class="btn btn-outline btn-block btn-sm" onclick="window.appApi.logout()" style="color: white; border-color: rgba(255,255,255,0.3);">
+                    Logout
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Guard Message -->
+            <div id="guard-message" class="card hidden" style="text-align: center; padding: 60px;">
+                <h2 style="margin-bottom: 16px;">🔒 Admin Access Required</h2>
+                <p style="margin-bottom: 24px; color: var(--text-secondary);">You need admin privileges to access this page.</p>
+                <a href="/auth.html" class="btn btn-primary">Sign In as Admin</a>
+            </div>
+
+            <!-- Admin Content -->
+            <div id="admin-content" class="hidden">
+                <div class="page-header">
+                    <h1 class="page-title">Admin Dashboard</h1>
+                    <div class="page-actions">
+                        <button class="theme-toggle" onclick="appApi.toggleTheme()" title="Toggle theme">
+                            <span class="icon-moon">🌙</span>
+                            <span class="icon-sun">☀️</span>
+                        </button>
+                        <button class="btn btn-secondary" onclick="loadStats(); loadUsers();">↻ Refresh</button>
+                    </div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon teal">👥</div>
+                        <div class="stat-info">
+                            <div class="stat-label">Total Users</div>
+                            <div class="stat-value" id="stat-users">0</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon blue">🔬</div>
+                        <div class="stat-info">
+                            <div class="stat-label">Total Predictions</div>
+                            <div class="stat-value" id="stat-predictions">0</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon purple">📚</div>
+                        <div class="stat-info">
+                            <div class="stat-label">Diseases</div>
+                            <div class="stat-value" id="stat-diseases">0</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange">🩺</div>
+                        <div class="stat-info">
+                            <div class="stat-label">Symptoms</div>
+                            <div class="stat-value" id="stat-symptoms">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: var(--space-6); margin-bottom: var(--space-6);">
+                    <div class="chart-container">
+                        <div class="chart-title">📊 Top Predicted Diseases</div>
+                        <canvas id="diseaseChart" height="280"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-title">📈 Prediction Activity (7 Days)</div>
+                        <canvas id="activityChart" height="280"></canvas>
+                    </div>
+                </div>
+
+                <!-- Users Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">👥 User Management</h2>
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <input type="text" id="user-search" class="form-control" placeholder="Search users..." style="width: 200px;" oninput="filterUsers()">
+                            <button class="btn btn-sm btn-ghost" onclick="loadUsers()">↻ Refresh</button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>User</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Predictions</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table">
+                                <tr>
+                                    <td colspan="6" style="text-align: center; padding: 40px;">
+                                        <div class="spinner" style="margin: 0 auto;"></div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- System Health -->
+                <div class="card" style="margin-top: var(--space-6);">
+                    <div class="card-header">
+                        <h2 class="card-title">💻 System Health</h2>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-4);">
+                        <div style="background: var(--bg-body); padding: var(--space-5); border-radius: var(--radius-md); text-align: center;">
+                            <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px;">API Status</div>
+                            <span class="badge badge-success">● Online</span>
+                        </div>
+                        <div style="background: var(--bg-body); padding: var(--space-5); border-radius: var(--radius-md); text-align: center;">
+                            <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px;">Database</div>
+                            <span class="badge badge-success">● Connected</span>
+                        </div>
+                        <div style="background: var(--bg-body); padding: var(--space-5); border-radius: var(--radius-md); text-align: center;">
+                            <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px;">ML Model</div>
+                            <span class="badge badge-success">● Ready</span>
+                        </div>
+                        <div style="background: var(--bg-body); padding: var(--space-5); border-radius: var(--radius-md); text-align: center;">
+                            <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px;">Server Port</div>
+                            <span style="font-weight: 600; color: var(--text-primary);">8082</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/app.js"></script>
+    <script>
+        const { request, showToast, getToken, parseEmailFromToken, parseRoleFromToken, getInitials, animateCounter } = window.appApi;
+        let diseaseChart, activityChart;
+        let allUsers = [];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = getToken();
+            const role = parseRoleFromToken();
+            
+            if (!token || role !== 'ADMIN') {
+                document.getElementById('guard-message').classList.remove('hidden');
+                document.getElementById('admin-content').classList.add('hidden');
+                return;
+            }
+            
+            document.getElementById('guard-message').classList.add('hidden');
+            document.getElementById('admin-content').classList.remove('hidden');
+            
+            const email = parseEmailFromToken();
+            document.getElementById('user-name').textContent = email ? email.split('@')[0] : 'Admin';
+            document.getElementById('user-avatar').textContent = getInitials(email);
+            
+            loadStats();
+            loadUsers();
+            initCharts();
+        });
+
+        async function loadStats() {
+            try {
+                const stats = await request('/admin/statistics');
+                
+                // Animate counters
+                animateCounter(document.getElementById('stat-users'), stats.totalUsers || 0);
+                animateCounter(document.getElementById('stat-predictions'), stats.totalPredictions || 0);
+                animateCounter(document.getElementById('stat-diseases'), stats.totalDiseases || 0);
+                animateCounter(document.getElementById('stat-symptoms'), stats.totalSymptoms || 0);
+                
+                updateCharts(stats);
+            } catch (error) {
+                console.error('Failed to load stats:', error);
+                showToast('Failed to load statistics', 'error');
+            }
+        }
+
+        async function loadUsers() {
+            try {
+                allUsers = await request('/admin/users');
+                renderUsers(allUsers);
+            } catch (error) {
+                document.getElementById('users-table').innerHTML = 
+                    '<tr><td colspan="6" style="text-align: center; color: var(--error); padding: 40px;">Failed to load users</td></tr>';
+            }
+        }
+
+        function filterUsers() {
+            const query = document.getElementById('user-search').value.toLowerCase();
+            const filtered = allUsers.filter(u => 
+                (u.email || '').toLowerCase().includes(query) ||
+                (u.name || '').toLowerCase().includes(query)
+            );
+            renderUsers(filtered);
+        }
+
+        function renderUsers(users) {
+            const tbody = document.getElementById('users-table');
+            
+            if (!users || users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px;">No users found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = users.map(u => `
+                <tr>
+                    <td style="font-weight: 500;">#${u.id}</td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 36px; height: 36px; background: var(--primary-bg); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600;">
+                                ${u.email ? u.email.charAt(0).toUpperCase() : 'U'}
+                            </div>
+                            <span style="font-weight: 500;">${u.name || u.email?.split('@')[0] || '-'}</span>
+                        </div>
+                    </td>
+                    <td style="color: var(--text-secondary);">${u.email}</td>
+                    <td><span class="badge ${u.role === 'ADMIN' ? 'badge-primary' : 'badge-success'}">${u.role}</span></td>
+                    <td style="font-weight: 500;">${u.predictionCount || 0}</td>
+                    <td><span class="badge badge-success">● Active</span></td>
+                </tr>
+            `).join('');
+        }
+
+        function initCharts() {
+            const chartColors = {
+                teal: '#0d9488',
+                blue: '#0ea5e9',
+                purple: '#8b5cf6',
+                orange: '#f59e0b',
+                red: '#ef4444',
+                green: '#22c55e'
+            };
+
+            // Disease Chart
+            const ctx1 = document.getElementById('diseaseChart').getContext('2d');
+            diseaseChart = new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: ['Loading...'],
+                    datasets: [{
+                        label: 'Predictions',
+                        data: [0],
+                        backgroundColor: [chartColors.teal, chartColors.blue, chartColors.purple, chartColors.orange, chartColors.red],
+                        borderRadius: 8,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { 
+                        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            // Activity Chart
+            const ctx2 = document.getElementById('activityChart').getContext('2d');
+            activityChart = new Chart(ctx2, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Predictions',
+                        data: [5, 10, 8, 15, 12, 8, 6],
+                        borderColor: chartColors.teal,
+                        backgroundColor: 'rgba(13, 148, 136, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: chartColors.teal,
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        function updateCharts(stats) {
+            if (stats.topDiseases && diseaseChart) {
+                const labels = stats.topDiseases.map(d => d.diseaseName || 'Unknown');
+                const data = stats.topDiseases.map(d => d.count || 0);
+                diseaseChart.data.labels = labels.slice(0, 5);
+                diseaseChart.data.datasets[0].data = data.slice(0, 5);
+                diseaseChart.update();
+            }
+            
+            if (stats.dailyActivity && activityChart) {
+                activityChart.data.labels = stats.dailyActivity.map(d => d.day);
+                activityChart.data.datasets[0].data = stats.dailyActivity.map(d => d.count);
+                activityChart.update();
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - HealthPredict</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <!-- Hamburger Button -->
+        <button class="hamburger-btn" id="hamburger-btn" onclick="appApi.toggleSidebar()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        
+        <!-- Sidebar Overlay -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="appApi.toggleSidebar()"></div>
+        
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">
+                <span class="sidebar-logo-icon">💚</span>
+                <span>HealthPredict</span>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="/index.html" class="sidebar-item">
+                    <span class="icon">🏠</span>
+                    <span>Home</span>
+                </a>
+                <a href="/predict.html" class="sidebar-item">
+                    <span class="icon">🔬</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/diseases.html" class="sidebar-item">
+                    <span class="icon">📚</span>
+                    <span>Disease Library</span>
+                </a>
+                <a href="/profile.html" class="sidebar-item active">
+                    <span class="icon">👤</span>
+                    <span>My Profile</span>
+                </a>
+                <a href="/admin.html" class="sidebar-item" id="admin-link" style="display: none;">
+                    <span class="icon">⚙️</span>
+                    <span>Admin Panel</span>
+                </a>
+                <a href="/swagger-ui.html" class="sidebar-item">
+                    <span class="icon">📖</span>
+                    <span>API Docs</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-user">
+                <div class="sidebar-avatar" id="sidebar-avatar">U</div>
+                <div class="sidebar-user-info">
+                    <div class="sidebar-user-name" id="sidebar-name">User</div>
+                    <div class="sidebar-user-role" id="sidebar-role">Member</div>
+                </div>
+            </div>
+            
+            <div style="padding: 0 20px 16px; display: flex; gap: 8px;">
+                <button class="theme-toggle" onclick="appApi.toggleTheme()" title="Toggle theme" style="flex-shrink:0;">
+                    <span class="icon-moon">🌙</span>
+                    <span class="icon-sun">☀️</span>
+                </button>
+                <button class="btn btn-outline btn-block btn-sm" onclick="window.appApi.logout()" style="color: white; border-color: rgba(255,255,255,0.3);">
+                    Logout
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Guard Message -->
+            <div id="guard-message" class="card hidden" style="text-align: center; padding: 60px;">
+                <h2 style="margin-bottom: 16px;">🔒 Please Login</h2>
+                <p style="margin-bottom: 24px; color: var(--text-secondary);">You need to be logged in to view your profile.</p>
+                <a href="/auth.html" class="btn btn-primary">Sign In</a>
+            </div>
+
+            <!-- Profile Content -->
+            <div id="profile-content" class="hidden">
+                <div class="page-header">
+                    <h1 class="page-title">My Profile</h1>
+                    <div class="page-actions">
+                        <button class="theme-toggle" onclick="appApi.toggleTheme()" title="Toggle theme">
+                            <span class="icon-moon">🌙</span>
+                            <span class="icon-sun">☀️</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Profile Header -->
+                <div class="profile-header">
+                    <div class="profile-avatar" id="profile-avatar">U</div>
+                    <div class="profile-info">
+                        <h2 id="profile-name">User Name</h2>
+                        <p class="profile-email" id="profile-email">user@example.com</p>
+                        <div class="profile-stats">
+                            <div class="profile-stat">
+                                <div class="profile-stat-value" id="total-predictions">0</div>
+                                <div class="profile-stat-label">Predictions</div>
+                            </div>
+                            <div class="profile-stat">
+                                <div class="profile-stat-value" id="member-since">-</div>
+                                <div class="profile-stat-label">Member Since</div>
+                            </div>
+                            <div class="profile-stat">
+                                <div class="profile-stat-value" style="color: var(--success);">Active</div>
+                                <div class="profile-stat-label">Status</div>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="badge badge-primary" id="profile-role" style="font-size: 0.85rem;">USER</span>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: var(--space-6);">
+                    <!-- Update Profile Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">✏️ Update Profile</h2>
+                        </div>
+                        
+                        <form id="update-form">
+                            <div class="form-group">
+                                <label class="form-label" for="update-name">Full Name</label>
+                                <input type="text" id="update-name" class="form-control" placeholder="Your name">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="update-email">Email Address</label>
+                                <input type="email" id="update-email" class="form-control" disabled style="opacity: 0.7; cursor: not-allowed;">
+                                <small style="color: var(--text-muted); margin-top: 4px; display: block;">Email cannot be changed</small>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-lg btn-block">
+                                <span id="save-text">Save Changes</span>
+                                <div class="spinner spinner-sm hidden" id="save-spinner"></div>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Account Settings Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">🔒 Account Settings</h2>
+                        </div>
+                        
+                        <div style="display: flex; flex-direction: column; gap: var(--space-4);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: var(--space-4); background: var(--bg-body); border-radius: var(--radius-md);">
+                                <div>
+                                    <div style="font-weight: 600;">Theme Preference</div>
+                                    <div style="font-size: 0.9rem; color: var(--text-muted);">Toggle between light and dark mode</div>
+                                </div>
+                                <button class="theme-toggle" onclick="appApi.toggleTheme()">
+                                    <span class="icon-moon">🌙</span>
+                                    <span class="icon-sun">☀️</span>
+                                </button>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: var(--space-4); background: var(--bg-body); border-radius: var(--radius-md);">
+                                <div>
+                                    <div style="font-weight: 600;">Notifications</div>
+                                    <div style="font-size: 0.9rem; color: var(--text-muted);">Receive health prediction alerts</div>
+                                </div>
+                                <span class="badge badge-success">Enabled</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: var(--space-4); background: var(--bg-body); border-radius: var(--radius-md);">
+                                <div>
+                                    <div style="font-weight: 600; color: var(--error);">Delete Account</div>
+                                    <div style="font-size: 0.9rem; color: var(--text-muted);">Permanently delete your account</div>
+                                </div>
+                                <button class="btn btn-sm btn-danger">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Predictions -->
+                <div class="card mt-6" style="margin-top: var(--space-6);">
+                    <div class="card-header">
+                        <h2 class="card-title">📊 Prediction History</h2>
+                        <a href="/predict.html" class="btn btn-sm btn-primary">+ New Prediction</a>
+                    </div>
+                    <div id="recent-predictions" class="history-list">
+                        <div class="skeleton skeleton-card" style="height: 70px; margin-bottom: 12px;"></div>
+                        <div class="skeleton skeleton-card" style="height: 70px; margin-bottom: 12px;"></div>
+                        <div class="skeleton skeleton-card" style="height: 70px;"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/app.js"></script>
+    <script>
+        const { request, showToast, getToken, parseEmailFromToken, parseRoleFromToken, getInitials, animateCounter, getRiskLevel, formatRelativeTime, formatDate } = window.appApi;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = getToken();
+            
+            if (!token) {
+                document.getElementById('guard-message').classList.remove('hidden');
+                document.getElementById('profile-content').classList.add('hidden');
+                return;
+            }
+            
+            document.getElementById('guard-message').classList.add('hidden');
+            document.getElementById('profile-content').classList.remove('hidden');
+            
+            loadProfile();
+            loadHistory();
+        });
+
+        async function loadProfile() {
+            const email = parseEmailFromToken();
+            const role = parseRoleFromToken();
+            const name = email ? email.split('@')[0] : 'User';
+            const initials = getInitials(email);
+            
+            // Update sidebar
+            document.getElementById('sidebar-name').textContent = name;
+            document.getElementById('sidebar-role').textContent = role === 'ADMIN' ? 'Administrator' : 'Patient';
+            document.getElementById('sidebar-avatar').textContent = initials;
+            
+            // Update profile header
+            document.getElementById('profile-avatar').textContent = initials;
+            document.getElementById('profile-name').textContent = name.charAt(0).toUpperCase() + name.slice(1);
+            document.getElementById('profile-email').textContent = email || 'N/A';
+            document.getElementById('profile-role').textContent = role === 'ADMIN' ? 'Administrator' : 'Patient';
+            document.getElementById('member-since').textContent = '2024';
+            
+            // Update form
+            document.getElementById('update-name').value = name;
+            document.getElementById('update-email').value = email || '';
+            
+            // Show admin link
+            if (role === 'ADMIN') {
+                document.getElementById('admin-link').style.display = 'flex';
+            }
+        }
+
+        async function loadHistory() {
+            const container = document.getElementById('recent-predictions');
+            try {
+                const history = await request('/predictions/me');
+                
+                // Animate prediction count
+                animateCounter(document.getElementById('total-predictions'), history.length);
+                
+                if (!history || history.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                            <div style="font-size: 3rem; margin-bottom: 12px;">📋</div>
+                            <p>No predictions yet</p>
+                            <a href="/predict.html" class="btn btn-primary" style="margin-top: 16px;">Make Your First Prediction</a>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = history.map(h => {
+                    const confidence = h.confidence ? (h.confidence * 100).toFixed(0) : 0;
+                    const risk = getRiskLevel(confidence);
+                    return `
+                        <div class="history-item">
+                            <div class="history-info">
+                                <div class="history-disease">${h.diseaseName || 'Unknown'}</div>
+                                <div class="history-date">${h.timestamp ? formatRelativeTime(h.timestamp) : ''}</div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span class="badge ${risk.class}">${risk.label}</span>
+                                <span class="history-confidence">${confidence}%</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                        <p>Failed to load history</p>
+                        <button class="btn btn-sm btn-outline" onclick="loadHistory()" style="margin-top: 12px;">Try Again</button>
+                    </div>
+                `;
+            }
+        }
+
+        document.getElementById('update-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const name = document.getElementById('update-name').value;
+            const saveBtn = e.target.querySelector('button[type="submit"]');
+            const saveText = document.getElementById('save-text');
+            const saveSpinner = document.getElementById('save-spinner');
+            
+            saveBtn.disabled = true;
+            saveText.textContent = 'Saving...';
+            saveSpinner.classList.remove('hidden');
+            
+            try {
+                await request('/users/me', {
+                    method: 'PUT',
+                    body: JSON.stringify({ name })
+                });
+                showToast('Profile updated successfully!', 'success');
+            } catch (error) {
+                showToast(error.message || 'Failed to update profile', 'error');
+            } finally {
+                saveBtn.disabled = false;
+                saveText.textContent = 'Save Changes';
+                saveSpinner.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

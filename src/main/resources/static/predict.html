@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - HealthPredict</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <!-- Hamburger Button -->
+        <button class="hamburger-btn" id="hamburger-btn" onclick="appApi.toggleSidebar()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        
+        <!-- Sidebar Overlay -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="appApi.toggleSidebar()"></div>
+        
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">
+                <span class="sidebar-logo-icon">💚</span>
+                <span>HealthPredict</span>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="/index.html" class="sidebar-item">
+                    <span class="icon">🏠</span>
+                    <span>Home</span>
+                </a>
+                <a href="/predict.html" class="sidebar-item active">
+                    <span class="icon">🔬</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/diseases.html" class="sidebar-item">
+                    <span class="icon">📚</span>
+                    <span>Disease Library</span>
+                </a>
+                <a href="/profile.html" class="sidebar-item">
+                    <span class="icon">👤</span>
+                    <span>My Profile</span>
+                </a>
+                <a href="/admin.html" class="sidebar-item" id="admin-link" style="display: none;">
+                    <span class="icon">⚙️</span>
+                    <span>Admin Panel</span>
+                </a>
+                <a href="/swagger-ui.html" class="sidebar-item">
+                    <span class="icon">📖</span>
+                    <span>API Docs</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-user">
+                <div class="sidebar-avatar" id="user-avatar">U</div>
+                <div class="sidebar-user-info">
+                    <div class="sidebar-user-name" id="user-name">User</div>
+                    <div class="sidebar-user-role" id="user-role">Member</div>
+                </div>
+            </div>
+            
+            <div style="padding: 0 20px 16px; display: flex; gap: 8px;">
+                <button class="theme-toggle" onclick="appApi.toggleTheme()" title="Toggle theme" style="flex-shrink:0;">
+                    <span class="icon-moon">🌙</span>
+                    <span class="icon-sun">☀️</span>
+                </button>
+                <button class="btn btn-outline btn-block btn-sm" onclick="window.appApi.logout()" style="color: white; border-color: rgba(255,255,255,0.3);">
+                    Logout
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Guard Message -->
+            <div id="guard-message" class="card hidden" style="text-align: center; padding: 60px;">
+                <h2 style="margin-bottom: 16px;">🔒 Please Login</h2>
+                <p style="margin-bottom: 24px; color: var(--text-secondary);">You need to be logged in to access the dashboard.</p>
+                <a href="/auth.html" class="btn btn-primary">Sign In</a>
+            </div>
+
+            <!-- Dashboard Content -->
+            <div id="dashboard-content" class="hidden">
+                <div class="page-header">
+                    <h1 class="page-title">Dashboard</h1>
+                    <div class="page-actions">
+                        <button class="theme-toggle" onclick="appApi.toggleTheme()" title="Toggle theme">
+                            <span class="icon-moon">🌙</span>
+                            <span class="icon-sun">☀️</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon teal">🔬</div>
+                        <div class="stat-info">
+                            <div class="stat-label">Total Predictions</div>
+                            <div class="stat-value" id="stat-predictions">0</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon blue">📚</div>
+                        <div class="stat-info">
+                            <div class="stat-label">Diseases in DB</div>
+                            <div class="stat-value">29</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon purple">🩺</div>
+                        <div class="stat-info">
+                            <div class="stat-label">Symptoms</div>
+                            <div class="stat-value">65+</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">📊</div>
+                        <div class="stat-info">
+                            <div class="stat-label">Accuracy</div>
+                            <div class="stat-value">95%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Two Column Grid -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: var(--space-6);">
+                    <!-- Prediction Form -->
+                    <div class="card" id="predict-section">
+                        <div class="card-header">
+                            <h2 class="card-title">🔬 New Prediction</h2>
+                        </div>
+                        
+                        <form id="predict-form">
+                            <div class="form-group">
+                                <label class="form-label">Search Symptoms</label>
+                                <div class="search-wrapper">
+                                    <span class="search-icon">🔍</span>
+                                    <input type="text" id="symptom-search" class="search-input" placeholder="Type to search symptoms..." autocomplete="off">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Select Your Symptoms</label>
+                                <select id="symptoms" class="form-control" multiple required>
+                                    <option disabled>Loading symptoms...</option>
+                                </select>
+                                <small style="color: var(--text-muted); margin-top: 8px; display: block;">
+                                    Hold Ctrl/Cmd to select multiple symptoms (minimum 3 recommended)
+                                </small>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block btn-lg">
+                                <span id="submit-text">Get Prediction</span>
+                                <div class="spinner spinner-sm hidden" id="submit-spinner"></div>
+                            </button>
+                        </form>
+
+                        <!-- Result -->
+                        <div id="prediction-result" class="hidden" style="margin-top: var(--space-6);">
+                            <div class="prediction-result">
+                                <div class="prediction-header">
+                                    <div>
+                                        <div class="disease-name" id="result-disease">--</div>
+                                        <div class="confidence-score">
+                                            <span class="confidence-value" id="result-confidence-value">--</span>
+                                            <span class="confidence-label">Confidence Score</span>
+                                        </div>
+                                    </div>
+                                    <span class="risk-badge" id="result-risk-badge">--</span>
+                                </div>
+                                <div class="prediction-details">
+                                    <div class="detail-section">
+                                        <div class="detail-title">📋 Description</div>
+                                        <p id="result-description" style="color: var(--text-secondary); line-height: 1.7;">--</p>
+                                    </div>
+                                    <div class="detail-section">
+                                        <div class="detail-title">✓ Recommended Precautions</div>
+                                        <ul class="precaution-list" id="result-precautions"></ul>
+                                    </div>
+                                </div>
+                                <div class="prediction-actions">
+                                    <button class="btn btn-secondary" onclick="downloadPdf()">📄 Download PDF</button>
+                                    <button class="btn btn-primary" onclick="newPrediction()">🔄 New Prediction</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- History -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">📊 Recent Predictions</h2>
+                            <button class="btn btn-sm btn-ghost" onclick="loadHistory()">↻ Refresh</button>
+                        </div>
+                        <div id="history-list" class="history-list">
+                            <!-- Skeleton loaders -->
+                            <div class="skeleton skeleton-card" style="height: 70px; margin-bottom: 12px;"></div>
+                            <div class="skeleton skeleton-card" style="height: 70px; margin-bottom: 12px;"></div>
+                            <div class="skeleton skeleton-card" style="height: 70px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/app.js"></script>
+    <script>
+        const { request, showToast, getToken, parseEmailFromToken, parseRoleFromToken, getInitials, animateCounter, getRiskLevel, formatRelativeTime } = window.appApi;
+        let currentPredictionId = null;
+        let allSymptoms = [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = getToken();
+            
+            if (!token) {
+                document.getElementById('guard-message').classList.remove('hidden');
+                document.getElementById('dashboard-content').classList.add('hidden');
+                return;
+            }
+            
+            document.getElementById('guard-message').classList.add('hidden');
+            document.getElementById('dashboard-content').classList.remove('hidden');
+            
+            // Set user info
+            const email = parseEmailFromToken();
+            const role = parseRoleFromToken();
+            document.getElementById('user-name').textContent = email ? email.split('@')[0] : 'User';
+            document.getElementById('user-role').textContent = role === 'ADMIN' ? 'Administrator' : 'Patient';
+            document.getElementById('user-avatar').textContent = getInitials(email);
+            
+            // Show admin link
+            if (role === 'ADMIN') {
+                document.getElementById('admin-link').style.display = 'flex';
+            }
+            
+            loadSymptoms();
+            loadHistory();
+        });
+
+        // Load symptoms
+        async function loadSymptoms() {
+            try {
+                const response = await fetch('/symptoms');
+                allSymptoms = await response.json();
+                const select = document.getElementById('symptoms');
+                select.innerHTML = allSymptoms.map(s => 
+                    `<option value="${s.symptomName}">${s.symptomName}</option>`
+                ).join('');
+                
+                // Initialize symptom search
+                initSymptomSearch();
+            } catch (error) {
+                showToast('Failed to load symptoms', 'error');
+            }
+        }
+
+        // Symptom search functionality
+        function initSymptomSearch() {
+            const searchInput = document.getElementById('symptom-search');
+            const select = document.getElementById('symptoms');
+            
+            const suggestionsDiv = document.createElement('div');
+            suggestionsDiv.className = 'search-suggestions';
+            searchInput.parentElement.appendChild(suggestionsDiv);
+
+            searchInput.addEventListener('input', () => {
+                const query = searchInput.value.toLowerCase().trim();
+                if (query.length < 2) {
+                    suggestionsDiv.classList.remove('show');
+                    return;
+                }
+
+                const selectedValues = Array.from(select.selectedOptions).map(o => o.value);
+                const matches = allSymptoms.filter(s => 
+                    s.symptomName.toLowerCase().includes(query) && 
+                    !selectedValues.includes(s.symptomName)
+                ).slice(0, 8);
+
+                if (matches.length === 0) {
+                    suggestionsDiv.innerHTML = '<div class="suggestion-item" style="color: var(--text-muted);">No matching symptoms</div>';
+                    suggestionsDiv.classList.add('show');
+                    return;
+                }
+
+                suggestionsDiv.innerHTML = matches.map(s => 
+                    `<div class="suggestion-item" data-name="${s.symptomName}">${s.symptomName}</div>`
+                ).join('');
+                suggestionsDiv.classList.add('show');
+            });
+
+            suggestionsDiv.addEventListener('click', (e) => {
+                if (e.target.classList.contains('suggestion-item') && e.target.dataset.name) {
+                    const name = e.target.dataset.name;
+                    const option = Array.from(select.options).find(o => o.value === name);
+                    if (option) {
+                        option.selected = true;
+                        searchInput.value = '';
+                        suggestionsDiv.classList.remove('show');
+                        showToast(`Added: ${name}`, 'success');
+                    }
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!searchInput.contains(e.target) && !suggestionsDiv.contains(e.target)) {
+                    suggestionsDiv.classList.remove('show');
+                }
+            });
+        }
+
+        // Load history
+        async function loadHistory() {
+            const container = document.getElementById('history-list');
+            try {
+                const history = await request('/predictions/me');
+                
+                // Update stat with animation
+                const statEl = document.getElementById('stat-predictions');
+                animateCounter(statEl, history.length);
+                
+                if (!history || history.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                            <div style="font-size: 3rem; margin-bottom: 12px;">📋</div>
+                            <p>No predictions yet</p>
+                            <p style="font-size: 0.9rem; margin-top: 8px;">Make your first prediction above!</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = history.slice(0, 6).map(h => {
+                    const confidence = h.confidence ? (h.confidence * 100).toFixed(0) : 0;
+                    const risk = getRiskLevel(confidence);
+                    return `
+                        <div class="history-item">
+                            <div class="history-info">
+                                <div class="history-disease">${h.diseaseName || 'Unknown'}</div>
+                                <div class="history-date">${h.timestamp ? formatRelativeTime(h.timestamp) : ''}</div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span class="badge ${risk.class}">${risk.label}</span>
+                                <span class="history-confidence">${confidence}%</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                        <p>Failed to load history</p>
+                        <button class="btn btn-sm btn-outline" onclick="loadHistory()" style="margin-top: 12px;">Try Again</button>
+                    </div>
+                `;
+            }
+        }
+
+        // Prediction form
+        document.getElementById('predict-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const select = document.getElementById('symptoms');
+            const selectedSymptoms = Array.from(select.selectedOptions).map(opt => opt.value);
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const submitText = document.getElementById('submit-text');
+            const submitSpinner = document.getElementById('submit-spinner');
+            
+            if (selectedSymptoms.length === 0) {
+                showToast('Please select at least one symptom', 'error');
+                return;
+            }
+            
+            if (selectedSymptoms.length < 3) {
+                showToast('For better accuracy, select at least 3 symptoms', 'warning');
+            }
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            submitText.textContent = 'Analyzing...';
+            submitSpinner.classList.remove('hidden');
+            
+            try {
+                const result = await request('/predictions', {
+                    method: 'POST',
+                    body: JSON.stringify({ symptoms: selectedSymptoms })
+                });
+                
+                currentPredictionId = result.predictionId;
+                
+                // Update result display
+                document.getElementById('result-disease').textContent = result.diseaseName || 'Unknown';
+                
+                const confidence = result.confidence ? (result.confidence * 100).toFixed(0) : 0;
+                document.getElementById('result-confidence-value').textContent = confidence + '%';
+                
+                const risk = getRiskLevel(confidence);
+                const riskBadge = document.getElementById('result-risk-badge');
+                riskBadge.textContent = risk.label;
+                riskBadge.className = 'risk-badge ' + risk.class;
+                
+                document.getElementById('result-description').textContent = 
+                    result.description || 'Please consult a healthcare provider for accurate diagnosis and treatment.';
+                
+                const precautionsList = document.getElementById('result-precautions');
+                if (result.precautions) {
+                    const precautions = result.precautions.split(',').map(p => p.trim()).filter(p => p);
+                    precautionsList.innerHTML = precautions.map(p => `<li>${p}</li>`).join('');
+                } else {
+                    precautionsList.innerHTML = '<li>Consult a healthcare provider</li><li>Get adequate rest</li><li>Stay hydrated</li>';
+                }
+                
+                document.getElementById('predict-form').classList.add('hidden');
+                document.getElementById('prediction-result').classList.remove('hidden');
+                
+                showToast('Prediction completed successfully!', 'success');
+                loadHistory();
+                
+            } catch (error) {
+                showToast(error.message || 'Prediction failed', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitText.textContent = 'Get Prediction';
+                submitSpinner.classList.add('hidden');
+            }
+        });
+
+        function newPrediction() {
+            document.getElementById('predict-form').classList.remove('hidden');
+            document.getElementById('prediction-result').classList.add('hidden');
+            document.getElementById('symptoms').selectedIndex = -1;
+            document.getElementById('symptom-search').value = '';
+        }
+
+        async function downloadPdf() {
+            if (!currentPredictionId) {
+                showToast('No prediction to download', 'warning');
+                return;
+            }
+            try {
+                showToast('Generating PDF...', 'info');
+                const response = await fetch(`/reports/prediction/${currentPredictionId}`, {
+                    headers: { 'Authorization': 'Bearer ' + getToken() }
+                });
+                if (!response.ok) throw new Error('Failed to generate PDF');
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `prediction-${currentPredictionId}.pdf`;
+                a.click();
+                window.URL.revokeObjectURL(url);
+                showToast('PDF downloaded successfully!', 'success');
+            } catch (error) {
+                showToast('Failed to download PDF', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

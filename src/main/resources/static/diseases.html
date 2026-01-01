@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disease Library - HealthPredict</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <!-- Hamburger Button -->
+        <button class="hamburger-btn" id="hamburger-btn" onclick="appApi.toggleSidebar()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        
+        <!-- Sidebar Overlay -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="appApi.toggleSidebar()"></div>
+        
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">
+                <span class="sidebar-logo-icon">💚</span>
+                <span>HealthPredict</span>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="/index.html" class="sidebar-item">
+                    <span class="icon">🏠</span>
+                    <span>Home</span>
+                </a>
+                <a href="/predict.html" class="sidebar-item">
+                    <span class="icon">🔬</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/diseases.html" class="sidebar-item active">
+                    <span class="icon">📚</span>
+                    <span>Disease Library</span>
+                </a>
+                <a href="/profile.html" class="sidebar-item">
+                    <span class="icon">👤</span>
+                    <span>My Profile</span>
+                </a>
+                <a href="/admin.html" class="sidebar-item" id="admin-link" style="display: none;">
+                    <span class="icon">⚙️</span>
+                    <span>Admin Panel</span>
+                </a>
+                <a href="/swagger-ui.html" class="sidebar-item">
+                    <span class="icon">📖</span>
+                    <span>API Docs</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-user">
+                <div class="sidebar-avatar" id="user-avatar">U</div>
+                <div class="sidebar-user-info">
+                    <div class="sidebar-user-name" id="user-name">User</div>
+                    <div class="sidebar-user-role" id="user-role">Member</div>
+                </div>
+            </div>
+            
+            <div style="padding: 0 20px 16px; display: flex; gap: 8px;">
+                <button class="theme-toggle" onclick="appApi.toggleTheme()" title="Toggle theme" style="flex-shrink:0;">
+                    <span class="icon-moon">🌙</span>
+                    <span class="icon-sun">☀️</span>
+                </button>
+                <button class="btn btn-outline btn-block btn-sm" onclick="window.appApi.logout()" style="color: white; border-color: rgba(255,255,255,0.3);">
+                    Logout
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="page-header">
+                <h1 class="page-title">Disease Library</h1>
+                <div class="page-actions">
+                    <button class="theme-toggle" onclick="appApi.toggleTheme()" title="Toggle theme">
+                        <span class="icon-moon">🌙</span>
+                        <span class="icon-sun">☀️</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Search Card -->
+            <div class="card mb-6" style="margin-bottom: var(--space-6);">
+                <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+                    <div class="search-wrapper" style="flex: 1; min-width: 250px;">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="search-input" class="search-input" placeholder="Search diseases by name or description...">
+                    </div>
+                    <select id="sort-select" class="form-control" style="width: 180px;" onchange="filterDiseases()">
+                        <option value="name">Sort by Name</option>
+                        <option value="symptoms">Sort by Symptoms</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid" style="margin-bottom: var(--space-6);">
+                <div class="stat-card">
+                    <div class="stat-icon teal">📚</div>
+                    <div class="stat-info">
+                        <div class="stat-label">Total Diseases</div>
+                        <div class="stat-value" id="stat-total">0</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon blue">🔍</div>
+                    <div class="stat-info">
+                        <div class="stat-label">Search Results</div>
+                        <div class="stat-value" id="stat-filtered">0</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">🩺</div>
+                    <div class="stat-info">
+                        <div class="stat-label">Categories</div>
+                        <div class="stat-value">12</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Disease Grid -->
+            <div id="disease-grid" class="disease-grid">
+                <div class="skeleton skeleton-card" style="height: 180px;"></div>
+                <div class="skeleton skeleton-card" style="height: 180px;"></div>
+                <div class="skeleton skeleton-card" style="height: 180px;"></div>
+                <div class="skeleton skeleton-card" style="height: 180px;"></div>
+                <div class="skeleton skeleton-card" style="height: 180px;"></div>
+                <div class="skeleton skeleton-card" style="height: 180px;"></div>
+            </div>
+
+            <!-- Modal -->
+            <div class="modal" id="disease-modal">
+                <div class="modal-content" style="max-width: 700px;">
+                    <div class="modal-header">
+                        <h2 class="modal-title" id="modal-title">Disease Details</h2>
+                        <button class="modal-close" onclick="closeModal()">×</button>
+                    </div>
+                    <div class="modal-body" id="modal-body">
+                        <!-- Content loaded dynamically -->
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+                        <a href="/predict.html" class="btn btn-primary">🔬 Check Symptoms</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/app.js"></script>
+    <script>
+        let allDiseases = [];
+        const { getToken, parseEmailFromToken, parseRoleFromToken, getInitials, animateCounter } = window.appApi;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set user info if logged in
+            const token = getToken();
+            if (token) {
+                const email = parseEmailFromToken();
+                const role = parseRoleFromToken();
+                document.getElementById('user-name').textContent = email ? email.split('@')[0] : 'User';
+                document.getElementById('user-role').textContent = role === 'ADMIN' ? 'Administrator' : 'Patient';
+                document.getElementById('user-avatar').textContent = getInitials(email);
+                
+                if (role === 'ADMIN') {
+                    document.getElementById('admin-link').style.display = 'flex';
+                }
+            }
+
+            loadDiseases();
+            
+            document.getElementById('search-input').addEventListener('input', filterDiseases);
+        });
+
+        async function loadDiseases() {
+            try {
+                const response = await fetch('/diseases');
+                allDiseases = await response.json();
+                
+                // Animate total count
+                animateCounter(document.getElementById('stat-total'), allDiseases.length);
+                
+                filterDiseases();
+            } catch (error) {
+                document.getElementById('disease-grid').innerHTML = `
+                    <div style="text-align: center; padding: 60px; color: var(--text-secondary); grid-column: 1/-1;">
+                        <div style="font-size: 3rem; margin-bottom: 16px;">❌</div>
+                        <p>Failed to load diseases</p>
+                        <button class="btn btn-outline" onclick="loadDiseases()" style="margin-top: 16px;">Retry</button>
+                    </div>
+                `;
+            }
+        }
+
+        function filterDiseases() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const sortBy = document.getElementById('sort-select').value;
+            
+            let filtered = allDiseases.filter(d => 
+                !query || 
+                (d.diseaseName || '').toLowerCase().includes(query) ||
+                (d.description || '').toLowerCase().includes(query)
+            );
+            
+            if (sortBy === 'name') {
+                filtered.sort((a, b) => (a.diseaseName || '').localeCompare(b.diseaseName || ''));
+            } else if (sortBy === 'symptoms') {
+                filtered.sort((a, b) => (b.symptoms?.length || 0) - (a.symptoms?.length || 0));
+            }
+            
+            document.getElementById('stat-filtered').textContent = filtered.length;
+            renderDiseases(filtered);
+        }
+
+        function renderDiseases(diseases) {
+            if (!diseases || diseases.length === 0) {
+                document.getElementById('disease-grid').innerHTML = `
+                    <div style="text-align: center; padding: 60px; color: var(--text-secondary); grid-column: 1/-1;">
+                        <div style="font-size: 3rem; margin-bottom: 16px;">🔍</div>
+                        <p style="font-size: 1.1rem;">No diseases found</p>
+                        <p style="margin-top: 8px;">Try a different search term</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            document.getElementById('disease-grid').innerHTML = diseases.map(d => `
+                <div class="disease-card" onclick="showDisease(${d.id})">
+                    <div class="disease-name-card">🏥 ${d.diseaseName || 'Unknown'}</div>
+                    <p class="disease-desc">${(d.description || 'No description available').substring(0, 100)}${d.description?.length > 100 ? '...' : ''}</p>
+                    <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                        ${(d.symptoms || []).slice(0, 3).map(s => `<span class="symptom-tag">${s.symptomName || s}</span>`).join('')}
+                        ${(d.symptoms?.length > 3) ? `<span class="symptom-tag" style="background: var(--text-muted); color: white;">+${d.symptoms.length - 3} more</span>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showDisease(id) {
+            const disease = allDiseases.find(d => d.id === id);
+            if (!disease) return;
+            
+            document.getElementById('modal-title').textContent = disease.diseaseName || 'Disease Details';
+            document.getElementById('modal-body').innerHTML = `
+                <div style="margin-bottom: 24px;">
+                    <h3 style="margin-bottom: 12px; color: var(--text-secondary); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">📋 Description</h3>
+                    <p style="line-height: 1.8; color: var(--text-primary);">${disease.description || 'No description available.'}</p>
+                </div>
+                <div style="margin-bottom: 24px;">
+                    <h3 style="margin-bottom: 12px; color: var(--text-secondary); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">🩺 Related Symptoms</h3>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        ${(disease.symptoms || []).map(s => `<span class="symptom-tag">${s.symptomName || s}</span>`).join('') || '<span style="color: var(--text-muted);">No symptoms listed</span>'}
+                    </div>
+                </div>
+                <div>
+                    <h3 style="margin-bottom: 12px; color: var(--text-secondary); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">💊 Precautions</h3>
+                    <div style="background: var(--bg-body); padding: 20px; border-radius: var(--radius-md); line-height: 1.8;">
+                        ${disease.precautions || 'Consult a healthcare provider for specific recommendations.'}
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('disease-modal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('disease-modal').classList.remove('show');
+        }
+
+        // Close modal on outside click
+        document.getElementById('disease-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+        
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeModal();
+        });
+    </script>
+</body>
+</html>

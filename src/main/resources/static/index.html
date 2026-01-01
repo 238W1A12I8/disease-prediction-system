@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealthPredict - AI-Powered Disease Prediction</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="hero-page">
+    <!-- Navigation -->
+    <nav class="hero-navbar">
+        <a href="/index.html" class="hero-logo">
+            <svg class="hero-logo-svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+            <span>HealthPredict</span>
+        </a>
+        <div class="hero-nav-links">
+            <a href="/index.html" class="active">Home</a>
+            <a href="/predict.html">Predict</a>
+            <a href="/diseases.html">Diseases</a>
+        </div>
+        <div class="hero-nav-right">
+            <button class="theme-toggle" onclick="appApi.toggleTheme()" title="Toggle theme">
+                <span class="icon-moon">🌙</span>
+                <span class="icon-sun">☀️</span>
+            </button>
+            <div id="profileDropdown" class="profile-dropdown dropdown" style="display:none;">
+                <div class="profile-trigger">
+                    <div class="profile-trigger-avatar" id="navAvatar">U</div>
+                    <div class="profile-trigger-info">
+                        <div class="profile-trigger-name" id="navName">User</div>
+                        <div class="profile-trigger-role" id="navRole">Patient</div>
+                    </div>
+                    <span>▼</span>
+                </div>
+                <div class="dropdown-menu">
+                    <div class="dropdown-header">Account</div>
+                    <a href="/profile.html" class="dropdown-item">👤 Profile</a>
+                    <a href="/predict.html" class="dropdown-item">🔮 Dashboard</a>
+                    <div class="dropdown-divider"></div>
+                    <a href="#" class="dropdown-item danger" onclick="appApi.logout(); return false;">🚪 Logout</a>
+                </div>
+            </div>
+            <a href="/auth.html" id="authLink" class="hero-btn" style="padding:10px 24px; font-size:0.95rem;">Login</a>
+        </div>
+    </nav>
+
+    <!-- Hero Content -->
+    <section class="hero-content">
+        <div class="hero-text">
+            <h1 class="hero-title">AI-Powered<br>Disease Prediction</h1>
+            <p class="hero-subtitle">
+                Advanced machine learning algorithms to predict<br>
+                potential diseases based on your symptoms
+            </p>
+            <a href="/auth.html" class="hero-btn" id="cta-btn">
+                Get Started
+                <span>→</span>
+            </a>
+        </div>
+        <div class="hero-image">
+            <img src="https://img.freepik.com/free-photo/doctor-using-modern-technology-equipment-examining-patient-with-holographic-screen-display_482257-29802.jpg?w=900" alt="AI Medical Technology" />
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <h2 class="section-title">Why Choose HealthPredict?</h2>
+        <p class="section-subtitle">Experience the future of healthcare with our cutting-edge AI technology</p>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🧠</div>
+                <h3 class="feature-title">AI-Powered Analysis</h3>
+                <p class="feature-desc">Our advanced algorithms analyze your symptoms to provide accurate disease predictions with confidence scores.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3 class="feature-title">Instant Results</h3>
+                <p class="feature-desc">Get immediate predictions without waiting. Our system processes your symptoms in real-time.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <h3 class="feature-title">Secure & Private</h3>
+                <p class="feature-desc">Your health data is encrypted and protected. We prioritize your privacy and data security.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3 class="feature-title">Track History</h3>
+                <p class="feature-desc">Keep a complete record of all your predictions and monitor your health journey over time.</p>
+            </div>
+        </div>
+    </section>
+
+    <script src="/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = window.appApi.getToken();
+            const authLink = document.getElementById('authLink');
+            const ctaBtn = document.getElementById('cta-btn');
+            const profileDropdown = document.getElementById('profileDropdown');
+            
+            if (token) {
+                // User is logged in
+                ctaBtn.innerHTML = 'Go to Dashboard <span>→</span>';
+                ctaBtn.href = '/predict.html';
+                
+                // Hide login button, show profile dropdown
+                authLink.style.display = 'none';
+                profileDropdown.style.display = 'block';
+                
+                // Populate user info
+                const email = window.appApi.parseEmailFromToken();
+                const role = window.appApi.parseRoleFromToken();
+                const initials = window.appApi.getInitials(email);
+                
+                document.getElementById('navAvatar').textContent = initials;
+                document.getElementById('navName').textContent = email ? email.split('@')[0] : 'User';
+                document.getElementById('navRole').textContent = role === 'ADMIN' ? 'Administrator' : 'Patient';
+            }
+        });
+    </script>
+</body>
+</html>

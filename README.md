@@ -1,4 +1,4 @@
-# Disease Prediction System (Spring Boot, Mini-1)
+# Disease Prediction System (Spring Boot)
 
 A lightweight, viva-friendly Disease Prediction System using Spring Boot, REST, JWT auth, JPA (MySQL), and a simple decision-tree-style symptom matcher. Includes a minimal Bootstrap-based static UI (`src/main/resources/static/index.html`).
 
